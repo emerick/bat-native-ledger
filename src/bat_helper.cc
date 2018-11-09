@@ -1925,7 +1925,6 @@ static bool ignore_ = false;
     //const std::string salt((char*)&braveledger_ledger::g_hkdfSalt[0], SALT_LENGTH);
     //crypto::HKDF hkdf(key, salt, "", SEED_LENGTH, 0, 0);
 
-    //LOG(ERROR) << "hkdf.client_write_key() == " << hkdf.client_write_key().data();
     //memcpy(&out.front(), hkdf.client_write_key().data(), hkdf.client_write_key().size());
 
     return out;
@@ -2118,9 +2117,6 @@ static bool ignore_ = false;
     size_t size = 0;
     if (!EVP_EncodedLength(&size, in.size())) {
       DCHECK(false);
-      LOG(ledger_, ledger::LogLevel::LOG_ERROR) <<
-        "EVP_EncodedLength failure in getBase64";
-
       return "";
     }
     std::vector<uint8_t> out(size);
@@ -2135,8 +2131,6 @@ static bool ignore_ = false;
     size_t size = 0;
     if (!EVP_DecodedLength(&size, in.length())) {
       DCHECK(false);
-      LOG(ledger_, ledger::LogLevel::LOG_ERROR) <<
-        "EVP_DecodedLength failure in getFromBase64";
       succeded = false;
     }
 
@@ -2149,9 +2143,7 @@ static bool ignore_ = false;
       if (0 == numDecBytes) {
         succeded = false;
         out.clear();
-      }
-      else if (final_size != size)
-      {
+      } else if (final_size != size) {
         out.resize(final_size);
       }
     }
@@ -2196,10 +2188,6 @@ static bool ignore_ = false;
       if (succeded) {
         decoded.push_back((uint8_t)'\0');
         braveledger_bat_helper::getJSONTwitchProperties((char*)&decoded.front(), parts);
-      }
-      else{
-        LOG(ledger_, ledger::LogLevel::LOG_ERROR) <<
-          "getTwitchParts failed in getFromBase64";
       }
     }
   }

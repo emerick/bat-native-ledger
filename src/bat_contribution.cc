@@ -112,7 +112,7 @@ void BatContribution::Reconcile(
     const braveledger_bat_helper::PublisherList& list,
     const braveledger_bat_helper::Directions& directions) {
   if (ledger_->ReconcileExists(viewing_id)) {
-    LOG(ledger_, ledger::LogLevel::LOG_ERROR) <<
+    BLOG(ledger_, ledger::LogLevel::LOG_ERROR) <<
       "Unable to reconcile with the same viewing id: " << viewing_id;
 
     // TODO(nejczdovc) add error callback
@@ -130,12 +130,12 @@ void BatContribution::Reconcile(
 
     if (list.size() == 0 || ac_amount > balance) {
       if (list.size() == 0) {
-        LOG(ledger_, ledger::LogLevel::LOG_INFO) <<
+        BLOG(ledger_, ledger::LogLevel::LOG_INFO) <<
           "Auto contribution table is empty";
       }
 
       if (ac_amount > balance) {
-        LOG(ledger_, ledger::LogLevel::LOG_INFO) <<
+        BLOG(ledger_, ledger::LogLevel::LOG_INFO) <<
           "You do not have enough funds for auto contribution";
       }
 
@@ -150,7 +150,7 @@ void BatContribution::Reconcile(
   if (category == ledger::PUBLISHER_CATEGORY::RECURRING_DONATION) {
     double ac_amount = ledger_->GetContributionAmount();
     if (list.size() == 0) {
-      LOG(ledger_, ledger::LogLevel::LOG_INFO) <<
+      BLOG(ledger_, ledger::LogLevel::LOG_INFO) <<
         "Recurring donation list is empty";
       StartAutoContribute();
       // TODO(nejczdovc) add error callback
@@ -159,7 +159,7 @@ void BatContribution::Reconcile(
 
     for (const auto& publisher : list) {
       if (publisher.id_.empty()) {
-        LOG(ledger_, ledger::LogLevel::LOG_ERROR) <<
+        BLOG(ledger_, ledger::LogLevel::LOG_ERROR) <<
           "Recurring donation is missing publisher";
         StartAutoContribute();
         // TODO(nejczdovc) add error callback
@@ -170,7 +170,7 @@ void BatContribution::Reconcile(
     }
 
     if (fee + ac_amount > balance) {
-      LOG(ledger_, ledger::LogLevel::LOG_INFO) <<
+      BLOG(ledger_, ledger::LogLevel::LOG_INFO) <<
         "You do not have enough funds to do recurring and auto contribution";
       // TODO(nejczdovc) add error callback
       return;
@@ -182,7 +182,7 @@ void BatContribution::Reconcile(
   if (category == ledger::PUBLISHER_CATEGORY::DIRECT_DONATION) {
     for (const auto& direction : directions) {
       if (direction.publisher_key_.empty()) {
-        LOG(ledger_, ledger::LogLevel::LOG_ERROR) <<
+        BLOG(ledger_, ledger::LogLevel::LOG_ERROR) <<
           "Reconcile direction missing publisher";
 
         // TODO(nejczdovc) add error callback
@@ -190,7 +190,7 @@ void BatContribution::Reconcile(
       }
 
       if (direction.currency_ != CURRENCY) {
-        LOG(ledger_, ledger::LogLevel::LOG_ERROR) <<
+        BLOG(ledger_, ledger::LogLevel::LOG_ERROR) <<
           "Reconcile direction currency invalid for " <<
           direction.publisher_key_;
 
@@ -202,7 +202,7 @@ void BatContribution::Reconcile(
     }
 
     if (fee > balance) {
-      LOG(ledger_, ledger::LogLevel::LOG_INFO) <<
+      BLOG(ledger_, ledger::LogLevel::LOG_INFO) <<
         "You do not have enough funds to do a tip";
 
       // TODO(nejczdovc) add error callback
@@ -888,9 +888,9 @@ void BatContribution::ProofBatch(
         batch_proof[i].ballot_.prepareBallot_);
 
     if (!success) {
-      LOG(ledger_, ledger::LogLevel::LOG_ERROR) <<
+      BLOG(ledger_, ledger::LogLevel::LOG_ERROR) <<
         "Failed to load surveyor state: " <<
-        batchProof[i].ballot_.prepareBallot_;
+        batch_proof[i].ballot_.prepareBallot_;
     }
 
     std::string signature_to_send;
@@ -1122,7 +1122,7 @@ void BatContribution::SetTimer(uint32_t& timer_id, uint64_t start_timer_in) {
     start_timer_in = braveledger_bat_helper::getRandomValue(10, 60);
   }
 
-  LOG(ledger_, ledger::LogLevel::LOG_INFO) <<
+  BLOG(ledger_, ledger::LogLevel::LOG_INFO) <<
     "Starts in " << start_timer_in;
 
   ledger_->SetTimer(start_timer_in, timer_id);
