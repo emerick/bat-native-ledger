@@ -1203,12 +1203,25 @@ void BatContribution::OnTimer(uint32_t timer_id) {
   if (timer_id == last_reconcile_timer_id_) {
     last_reconcile_timer_id_ = 0;
     OnTimerReconcile();
-  } else if (timer_id == last_prepare_vote_batch_timer_id_) {
+    return;
+  }
+
+  if (timer_id == last_prepare_vote_batch_timer_id_) {
     last_prepare_vote_batch_timer_id_ = 0;
     PrepareVoteBatch();
-  } else if (timer_id == last_vote_batch_timer_id_) {
+    return;
+  }
+
+  if (timer_id == last_vote_batch_timer_id_) {
     last_vote_batch_timer_id_ = 0;
     VoteBatch();
+    return;
+  }
+  auto it = retry_timers_.begin();
+  for (std::pair<std::string, uint32_t> element : retry_timers_) {
+    if (element.second == timer_id) {
+      DoRetry(element.first);
+    }
   }
 }
 
