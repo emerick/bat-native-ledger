@@ -9,6 +9,7 @@
 #include <vector>
 #include <map>
 #include <functional>
+#include <bat/ledger/ledger.h>
 
 #include "bat_helper_platform.h"
 #include "static_values.h"
@@ -298,6 +299,8 @@ namespace braveledger_bat_helper {
     Directions directions_;
     int category_;
     PublisherList list_;
+    ledger::ContributionRetry retry_step_;
+    int retry_level_;
   };
 
   typedef std::vector<TRANSACTION_ST> Transactions;

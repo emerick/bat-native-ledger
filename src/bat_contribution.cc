@@ -250,7 +250,7 @@ void BatContribution::ReconcileCallback(
   auto reconcile = ledger_->GetReconcileById(viewing_id);
 
   if (!result || reconcile.viewingId_.empty()) {
-    // TODO(nejczdovc) add retry
+    AddRetry(ledger::ContributionRetry::STEP_RECONCILE, viewing_id);
     return;
   }
 
@@ -1293,6 +1293,88 @@ void BatContribution::OnReconcileCompleteSuccess(
                                     category);
     }
     return;
+  }
+}
+
+void BatContribution::AddRetry(
+    ledger::ContributionRetry step,
+    const std::string& viewing_id,
+    braveledger_bat_helper::CURRENT_RECONCILE reconcile) {
+
+  if (reconcile.viewingId_.empty()) {
+    reconcile = ledger_->GetReconcileById(viewing_id);
+  }
+
+  uint64_t start_timer_in = GetRetryTimer(step, reconcile);
+  bool success = ledger_->UpdateReconcile(reconcile);
+  if (!success || start_timer_in == 0) {
+    OnReconcileComplete(ledger::Result::LEDGER_ERROR, viewing_id);
+    return;
+  }
+
+  retry_timers_[viewing_id] = 0u;
+  SetTimer(retry_timers_[viewing_id], start_timer_in);
+}
+
+uint64_t BatContribution::GetRetryTimer(
+    ledger::ContributionRetry step,
+    braveledger_bat_helper::CURRENT_RECONCILE& reconcile) {
+
+  ledger::ContributionRetry old_step = reconcile.retry_step_;
+
+  int phase = GetRetryPhase(step);
+  if (phase > GetRetryPhase(old_step)) {
+    reconcile.retry_level_ = 0;
+  } else {
+    reconcile.retry_level_ = reconcile.retry_level_++;
+  }
+
+  reconcile.retry_step_ = step;
+
+  // TODO get size from the list
+  if (phase == 1 && reconcile.retry_level_ < 5) {
+    return phase_one_timers[reconcile.retry_level_];
+  }
+
+  if (phase == 2) {
+    // TODO get size from the list
+    if (reconcile.retry_level_ > 2) {
+      return phase_one_timers[2];
+    } else {
+      return phase_one_timers[reconcile.retry_level_];
+    }
+  }
+
+  return 0;
+}
+
+int BatContribution::GetRetryPhase(ledger::ContributionRetry step) {
+  int phase = 0;
+
+  switch (step) {
+    case ledger::ContributionRetry::STEP_RECONCILE: {
+      phase = 1;
+      break;
+    }
+    case ledger::ContributionRetry::STEP_NO:
+      break;
+  }
+
+  return phase;
+}
+
+void BatContribution::DoRetry(const std::string& viewing_id) {
+  auto reconcile = ledger_->GetReconcileById(viewing_id);
+
+  retry_timers_.erase(viewing_id);
+
+  switch (reconcile.retry_step_) {
+    case ledger::ContributionRetry::STEP_RECONCILE: {
+      Reconcile(viewing_id);
+      break;
+    }
+    case ledger::ContributionRetry::STEP_NO:
+      break;
   }
 }
 

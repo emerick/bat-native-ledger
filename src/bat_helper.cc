@@ -1035,7 +1035,9 @@ static bool ignore_ = false;
   /////////////////////////////////////////////////////////////////////////////
   CURRENT_RECONCILE::CURRENT_RECONCILE() :
     timestamp_(0),
-    fee_(.0) {}
+    fee_(.0),
+    retry_step_(ledger::ContributionRetry::STEP_NO),
+    retry_level_(0) {}
 
   CURRENT_RECONCILE::CURRENT_RECONCILE(const CURRENT_RECONCILE& data):
     viewingId_(data.viewingId_),
@@ -1051,7 +1053,9 @@ static bool ignore_ = false;
     fee_(data.fee_),
     directions_(data.directions_),
     category_(data.category_),
-    list_(data.list_) {}
+    list_(data.list_),
+    retry_step_(data.retry_step_),
+    retry_level_(data.retry_level_) {}
 
   CURRENT_RECONCILE::~CURRENT_RECONCILE() {}
 
@@ -1118,6 +1122,19 @@ static bool ignore_ = false;
           list_.push_back(publisher_st);
         }
       }
+
+      if (d.HasMember("retry_step") && d["retry_step"].IsInt()) {
+        retry_step_ = static_cast<ledger::ContributionRetry>(
+            d["retry_step"].GetInt());
+      } else {
+        retry_step_ = ledger::ContributionRetry::STEP_NO;
+      }
+
+      if (d.HasMember("retry_level") && d["retry_level"].IsInt()) {
+        retry_level_ = d["retry_level"].GetInt();
+      } else {
+        retry_level_ = 0;
+      }
     }
 
     return !error;
@@ -1183,6 +1200,12 @@ static bool ignore_ = false;
       saveToJson(writer, i);
     }
     writer.EndArray();
+
+    writer.String("retry_step");
+    writer.Int(data.retry_step_);
+
+    writer.String("retry_level");
+    writer.Int(data.retry_level_);
 
     writer.EndObject();
   }

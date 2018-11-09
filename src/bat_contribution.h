@@ -76,6 +76,18 @@ namespace bat_ledger {
 
 namespace braveledger_bat_contribution {
 
+static const uint64_t phase_one_timers[] = {
+    1 * 60 * 60,  // 1h
+    2 * 60 * 60,  // 2h
+    12 * 60 * 60,  // 12h
+    24 * 60 * 60,  // 24h
+    48 * 60 * 60};  // 48h
+
+static const uint64_t phase_two_timers[] = {
+    1 * 60 * 60,  // 1h
+    6 * 60 * 60,  // 6h
+    24 * 60 * 60};  // 24h
+
 class BatContribution {
  public:
   explicit BatContribution(bat_ledger::LedgerImpl* ledger);
@@ -219,11 +231,24 @@ class BatContribution {
 
   void SetTimer(uint32_t& timer_id, uint64_t start_timer_in = 0);
 
+  void AddRetry(
+    ledger::ContributionRetry step,
+    const std::string& viewing_id,
+    braveledger_bat_helper::CURRENT_RECONCILE reconcile = {});
+
+  uint64_t GetRetryTimer(ledger::ContributionRetry step,
+                     braveledger_bat_helper::CURRENT_RECONCILE& reconcile);
+
+  int GetRetryPhase(ledger::ContributionRetry step);
+
+  void DoRetry(const std::string& viewing_id);
+
   bat_ledger::LedgerImpl* ledger_;  // NOT OWNED
   bat_ledger::URLRequestHandler handler_;
   uint32_t last_reconcile_timer_id_;
   uint32_t last_prepare_vote_batch_timer_id_;
   uint32_t last_vote_batch_timer_id_;
+  std::map<std::string, uint32_t> retry_timers_;
 };
 
 }  // namespace braveledger_bat_contribution

@@ -65,6 +65,10 @@ LEDGER_EXPORT struct PaymentData {
   int local_year;
 };
 
+LEDGER_EXPORT enum ContributionRetry {
+  STEP_NO = 0,
+  STEP_RECONCILE = 1 // Phase 1
+};
 
 using PublisherBannerCallback = std::function<void(std::unique_ptr<ledger::PublisherBanner> banner)>;
 
